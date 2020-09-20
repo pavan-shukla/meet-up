@@ -43,7 +43,8 @@ const initialState = {
       acceptTnC: true,
     }
   ],
-  apiError: false,
+  isAddUserSuccess: false,
+  isAddUserFail: false
 };
 
 //Reducers are pure JavaScript Functions
@@ -51,9 +52,10 @@ const appReducer = (state = initialState, action) => {
   let newState = { ...state };
   if (action.type === actionsTypes.ADD_USER_SUCCESS) {
     newState.users = [...state.users, action.payload];
+    newState.isAddUserSuccess = true;
     return newState;
   } else if (action.type === actionsTypes.ADD_USER_FAIL) {
-    newState.apiError = true;
+    newState.isAddUserFail = true;
     return newState;
   } else {
     return state;

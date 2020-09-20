@@ -17,7 +17,7 @@ export function addUsers(user) {
         user
       )
       .then((response) => {
-          dispatch(addUserSuccess(response));
+          dispatch(addUserSuccess(user));
       })
       .catch((e) => {
          dispatch(addUserFail(e));

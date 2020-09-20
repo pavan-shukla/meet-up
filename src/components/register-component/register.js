@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Form, Button, Col, Modal } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Form, Button, Col, Modal, Toast } from "react-bootstrap";
 import { connect } from "react-redux";
 import style from "./register.module.css";
 import TnC from "./../tnc-component/tnc";
@@ -8,6 +8,9 @@ import * as userActions from "../../actions/userActions";
 
 function Register(props) {
   const [isPopupVisible, setPopupVisiblity] = useState(false);
+  const [isToastVisible, setToastVisiblity] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastBody, setToastBody] = useState('');
   const [user, setUser] = useState({
     name: "",
     age: "",
@@ -20,18 +23,48 @@ function Register(props) {
   });
 
   function onSubmit() {
-    if (user.name && user.age && user.profession && user.acceptTnC === "true") {
+    if (
+      user.name &&
+      user.age &&
+      user.profession &&
+      user.acceptTnC &&
+      user.acceptTnC !== "false"
+    ) {
       props.addUsers(user);
     } else {
-      console.log("show error");
+      setToastVisiblity(true);
     }
   }
 
-  function onChangeListener(field, value) {
+  function onChangeListener(field, val) {
     const userLocal = { ...user };
-    userLocal[field] = value.target.value;
+    if (field === "acceptTnC") {
+      userLocal[field] = val.target.checked;
+    } else {
+      userLocal[field] = val.target.value;
+    }
     setUser(userLocal);
   }
+
+  useEffect(() => {
+    if (props.isAddUserSuccess) {
+      setToastMessage("Sucess");
+      setToastBody("Record Added Successfully");
+      setUser({
+        name: "",
+        age: "",
+        dob: "",
+        profession: "",
+        locality: "",
+        numOfGuests: "",
+        address: "",
+        acceptTnC: false,
+      });
+    } else if (props.isAddUserFail) {
+      setToastMessage("Something went wrong!");
+      setToastBody("Please try again later");
+    }
+  }, [props.isAddUserSuccess, props.isAddUserFail]);
 
   return (
     <div>
@@ -63,6 +96,7 @@ function Register(props) {
             value={user.profession}
             onChange={(e) => onChangeListener("profession", e)}
           >
+            <option>Select</option>
             <option>Student</option>
             <option>Employed</option>
           </Form.Control>
@@ -100,7 +134,7 @@ function Register(props) {
           <Form.Check
             type="checkbox"
             value={user.acceptTnC}
-            onChange={(e) => onChangeListener("acceptTnC", e)}
+            onClick={(e) => onChangeListener("acceptTnC", e)}
             label={
               <span>
                 I accept{" "}
@@ -137,6 +171,22 @@ function Register(props) {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Toast
+        style={{
+          position: "fixed",
+          top: "40px",
+          right: "40px",
+        }}
+        onClose={() => setToastVisiblity(false)}
+        show={isToastVisible || props.isAddUserFail || props.isAddUserSuccess}
+        delay={3000}
+        autohide
+      >
+        <Toast.Header>
+          <strong className="mr-auto">{toastMessage}</strong>
+        </Toast.Header>
+        <Toast.Body>{toastBody}</Toast.Body>
+      </Toast>
     </div>
   );
 }
@@ -144,7 +194,9 @@ function Register(props) {
 // Map the state of Store to Props of Component
 function mapStateToProps(state, ownProps) {
   return {
-    users: state.users,
+    users: state.appReducer.users,
+    isAddUserSuccess: state.appReducer.isAddUserSuccess,
+    isAddUserFail: state.appReducer.isAddUserFail,
   };
 }
 
